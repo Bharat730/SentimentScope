@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SentimentScope — Social Media Sentiment & Emotion Analyzer</title>
+  <meta name="description" content="Analyze the sentiment and emotions behind social media posts using state-of-the-art NLP transformer models." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ── Animated background ──────────────────────────────────────────────── -->
+  <div class="bg-orbs" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <!-- ── Header ────────────────────────────────────────────────────────────── -->
+  <header class="header">
+    <div class="logo">
+      <span class="logo-icon">🔍</span>
+      <span class="logo-text">Sentiment<span class="logo-accent">Scope</span></span>
+    </div>
+    <div class="header-badge">Powered by HuggingFace Transformers</div>
+  </header>
+
+  <!-- ── Hero ──────────────────────────────────────────────────────────────── -->
+  <section class="hero">
+    <h1 class="hero-title">Understand the <span class="gradient-text">emotion</span> behind every post</h1>
+    <p class="hero-subtitle">Analyse social media text for sentiment and deep emotional signals using state‑of‑the‑art NLP transformer models.</p>
+  </section>
+
+  <!-- ── Main content ───────────────────────────────────────────────────────── -->
+  <main class="container">
+
+    <!-- Tab nav -->
+    <div class="tabs" role="tablist">
+      <button class="tab tab--active" id="tab-single" role="tab" aria-selected="true" aria-controls="panel-single" onclick="switchTab('single')">Single Post</button>
+      <button class="tab" id="tab-batch" role="tab" aria-selected="false" aria-controls="panel-batch" onclick="switchTab('batch')">Batch Analysis</button>
+      <button class="tab" id="tab-history" role="tab" aria-selected="false" aria-controls="panel-history" onclick="switchTab('history')">History</button>
+    </div>
+
+    <!-- ── Single tab ─────────────────────────────────────────────────────── -->
+    <div class="panel" id="panel-single" role="tabpanel">
+      <div class="input-card glass">
+        <label class="input-label" for="single-input">Paste your social media post</label>
+        <textarea
+          id="single-input"
+          class="textarea"
+          placeholder="e.g.  I can't believe how amazing this event was! Absolutely blown away 🤯"
+          maxlength="2000"
+          rows="5"
+          oninput="updateCounter()"
+        ></textarea>
+        <div class="input-footer">
+          <span class="char-counter" id="char-counter">0 / 2000</span>
+          <div class="btn-group">
+            <button class="btn btn--ghost" id="clear-btn" onclick="clearSingle()">Clear</button>
+            <button class="btn btn--primary" id="analyse-btn" onclick="analyseSingle()">
+              <span class="btn-text">Analyse</span>
+              <span class="btn-spinner hidden" aria-hidden="true"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Result area -->
+      <div id="single-result" class="result-area hidden"></div>
+    </div>
+
+    <!-- ── Batch tab ──────────────────────────────────────────────────────── -->
+    <div class="panel hidden" id="panel-batch" role="tabpanel">
+      <div class="input-card glass">
+        <label class="input-label" for="batch-input">Enter one post per line <span class="badge">max 50</span></label>
+        <textarea
+          id="batch-input"
+          class="textarea"
+          placeholder="I love this so much!&#10;This is the worst day ever.&#10;Feeling kind of meh today…"
+          rows="8"
+        ></textarea>
+        <div class="input-footer">
+          <span id="line-counter" class="char-counter">0 lines</span>
+          <button class="btn btn--primary" id="batch-btn" onclick="analyseBatch()">
+            <span class="btn-text">Analyse All</span>
+            <span class="btn-spinner hidden" aria-hidden="true"></span>
+          </button>
+        </div>
+      </div>
+      <div id="batch-result" class="result-area hidden"></div>
+    </div>
+
+    <!-- ── History tab ────────────────────────────────────────────────────── -->
+    <div class="panel hidden" id="panel-history" role="tabpanel">
+      <div class="history-header">
+        <h2 class="section-title">Session History</h2>
+        <button class="btn btn--ghost btn--sm" onclick="clearHistory()">Clear All</button>
+      </div>
+      <div id="history-list" class="history-list">
+        <div class="empty-state">
+          <span class="empty-icon">🗂️</span>
+          <p>No analyses yet. Start by analysing a post!</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ── Footer ────────────────────────────────────────────────────────────── -->
+  <footer class="footer">
+    <p>SentimentScope · Built with <span style="color:#e879f9">♥</span> using RoBERTa &amp; DistilRoBERTa</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
