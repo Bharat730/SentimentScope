@@ -1,9 +1,10 @@
 """
 main.py — SentimentScope FastAPI backend
 Endpoints:
-  POST /analyse        – single text
-  POST /analyse/batch  – list of texts
-  GET  /health         – liveness check
+  POST /analyse         – single text (overall)
+  POST /analyse/aspects – single text + sentence-by-sentence breakdown
+  POST /analyse/batch   – list of texts
+  GET  /health          – liveness check
 """
 
 from fastapi import FastAPI, HTTPException
@@ -13,7 +14,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field, conlist
 from typing import Annotated
 from pathlib import Path
-from model import analyse_text, analyse_batch
+from model import analyse_text, analyse_batch, analyse_aspects
 
 # Path to the frontend folder (one level up from backend/)
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
@@ -65,6 +66,18 @@ def analyse_batch_endpoint(req: BatchRequest):
     """Analyse up to 50 texts in one request."""
     results = analyse_batch(req.texts)
     return {"count": len(results), "results": results}
+
+
+@app.post("/analyse/aspects", tags=["Analysis"])
+def analyse_aspects_endpoint(req: SingleRequest):
+    """
+    Analyse a single text overall AND break it into individual sentences,
+    returning per-sentence sentiment + emotion alongside the overall result.
+    """
+    result = analyse_aspects(req.text)
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result
 
 
 # ── Serve frontend (must be LAST — after all API routes) ─────────────────────
