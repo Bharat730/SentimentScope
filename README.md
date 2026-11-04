@@ -1,8 +1,8 @@
 # 🔍 SentimentScope
 
-> **Social Media Sentiment & Emotion Analyzer** — powered by state-of-the-art HuggingFace Transformer models.
+> **Social Media Sentiment & Emotion Analyzer** — powered by HuggingFace Transformer models.
 
-SentimentScope is a full-stack NLP web application that takes social media text and instantly classifies it by both **sentiment** (Positive / Negative / Neutral) and **deep emotion** (Joy / Anger / Fear / Sadness / Surprise / Disgust / Neutral) — all running locally on your machine, no API keys needed.
+SentimentScope is a full-stack NLP web application that takes social media text and classifies it by both **sentiment** (Positive / Negative / Neutral) and **emotion** (Joy / Anger / Fear / Sadness / Surprise / Disgust / Neutral). It can also break a longer post down **sentence by sentence**. Everything runs locally on your machine — no API keys and no external services needed.
 
 ---
 
@@ -10,13 +10,15 @@ SentimentScope is a full-stack NLP web application that takes social media text 
 
 | Feature | Details |
 |---|---|
-| 🎯 **Dual-Model Analysis** | Two specialized RoBERTa/DistilRoBERTa models run in parallel for sentiment + emotion |
-| 📊 **Score Breakdown** | Full probability scores for every label, shown as animated progress bars |
-| 📋 **Batch Analysis** | Analyse up to **50 posts at once**, one per line |
-| 🕑 **Session History** | Last 50 analyses persisted in browser `localStorage` — survives page refresh |
-| 🌐 **LAN Sharing** | `start.bat` binds to `0.0.0.0` so any device on your network can use the app |
-| 📖 **Auto API Docs** | FastAPI Swagger UI available at `/docs` — great for testing the REST API directly |
-| 🎨 **Premium Dark UI** | Glassmorphism design with animated background orbs, Inter + JetBrains Mono fonts |
+| 🎯 **Dual-model analysis** | Two specialised models (RoBERTa for sentiment, DistilRoBERTa for emotion) run on every text |
+| 📊 **Score breakdown** | Full probability for every label, shown as animated progress bars |
+| 📋 **Sentence-by-sentence breakdown** | Multi-sentence posts get an expandable per-sentence sentiment + emotion view (`/analyse/aspects`) |
+| 📦 **Batch analysis** | Analyse up to **50 posts at once**, one per line |
+| 🕑 **History** | Last 50 analyses saved in the browser (`localStorage`) — survives page refresh |
+| 🌐 **LAN sharing** | `start.bat` binds to `0.0.0.0`, so phones and other computers on the same Wi-Fi can use the app |
+| 📖 **Auto API docs** | FastAPI Swagger UI at `/docs` for testing the REST API directly |
+| 📝 **Inference log** | Every analysis is printed to the console and appended to `backend/inference.log` |
+| 🎨 **Dark glassmorphism UI** | Animated background orbs, Inter + JetBrains Mono fonts (loaded from Google Fonts) |
 
 ---
 
@@ -24,41 +26,45 @@ SentimentScope is a full-stack NLP web application that takes social media text 
 
 The app has three tabs:
 
-- **Single Post** — Paste one post (up to 2 000 chars), press **Analyse** or `Ctrl+Enter`
-- **Batch Analysis** — Enter up to 50 posts (one per line), press **Analyse All**
-- **History** — Browse/clear past analyses from this session
+- **Single Post** — paste one post (up to 2,000 characters) and press **Analyse** or `Ctrl+Enter`. If the text contains two or more sentences, a *Sentence-by-Sentence Breakdown* appears below the overall result; click a sentence to expand its scores.
+- **Batch Analysis** — enter up to 50 posts (one per line) and press **Analyse All**.
+- **History** — browse or clear previous analyses.
 
 ---
 
 ## 🤖 Models Used
 
-| Task | HuggingFace Model | Labels |
-|---|---|---|
-| Sentiment | [`cardiffnlp/twitter-roberta-base-sentiment-latest`](https://huggingface.co/cardiffnlp/twitter-roberta-base-sentiment-latest) | Positive · Negative · Neutral |
-| Emotion | [`j-hartmann/emotion-english-distilroberta-base`](https://huggingface.co/j-hartmann/emotion-english-distilroberta-base) | Joy · Anger · Fear · Sadness · Surprise · Disgust · Neutral |
+| Task | HuggingFace model | Labels | Trained on |
+|---|---|---|---|
+| Sentiment | [`cardiffnlp/twitter-roberta-base-sentiment-latest`](https://huggingface.co/cardiffnlp/twitter-roberta-base-sentiment-latest) | Positive · Negative · Neutral | RoBERTa-base trained on ~124M tweets (2018–2021), fine-tuned on the TweetEval benchmark |
+| Emotion | [`j-hartmann/emotion-english-distilroberta-base`](https://huggingface.co/j-hartmann/emotion-english-distilroberta-base) | Joy · Anger · Fear · Sadness · Surprise · Disgust · Neutral | DistilRoBERTa fine-tuned on 6 emotion datasets (~20k balanced examples; ~66% evaluation accuracy) |
 
-> **First launch note:** Both models are downloaded automatically from the HuggingFace Hub (~600 MB combined). They are cached locally after the first download — subsequent starts are instant.
+SentimentScope does **not** train anything itself — it uses these pre-trained models for inference only.
+
+> **First launch note:** both models are downloaded automatically from the HuggingFace Hub (roughly 800 MB combined) and cached locally. After that they load from disk, but the **first analysis after each server start takes a few extra seconds** while the models are loaded into memory.
 
 ---
 
 ## 📁 Project Structure
 
 ```
-SentimentScope/               ← Git repository root
-├── README.md                 ← You are here
+SentimentScope/                  ← Git repository root
+├── README.md                    ← You are here
 ├── .gitignore
-├── desktop.ini               ← Windows folder display customization
-└── SentimentScope/           ← Main application package
-    ├── start.bat             ← ✅ One-click Windows launcher (activates venv + starts server)
-    ├── frontend/             ← Static web UI (no build step required)
-    │   ├── index.html        ← Single-page application (tabs, forms, result display)
-    │   ├── style.css         ← Premium dark glassmorphism theme (496 lines)
-    │   └── app.js            ← Vanilla JS: API calls, history, rendering (294 lines)
-    └── backend/              ← FastAPI Python backend
-        ├── main.py           ← FastAPI app, routes, CORS, static file serving
-        ├── model.py          ← HuggingFace model loading & inference logic
-        └── requirements.txt  ← Python dependencies
+└── SentimentScope/              ← Application folder
+    ├── start.bat                ← One-click Windows launcher (activates venv + starts server)
+    ├── frontend/                ← Static web UI (no build step)
+    │   ├── index.html           ← Single-page app (tabs, forms, result areas)
+    │   ├── style.css            ← Dark glassmorphism theme
+    │   └── app.js               ← Vanilla JS: API calls, rendering, history
+    └── backend/                 ← FastAPI backend
+        ├── main.py              ← App, routes, CORS, static file serving
+        ├── model.py             ← Model loading, inference, sentence splitting, logging
+        ├── requirements.txt     ← Python dependencies
+        └── inference.log        ← Created at runtime (git-ignored)
 ```
+
+The `venv/` folder you create during setup lives inside `SentimentScope/SentimentScope/` and is git-ignored.
 
 ---
 
@@ -66,51 +72,40 @@ SentimentScope/               ← Git repository root
 
 ### Prerequisites
 
-- **Python 3.10+**
-- **pip**
-- **~600 MB** free disk space (for model downloads on first run)
-- Internet connection on first run (for model downloads)
+- **Python 3.10+** and **pip**
+- About **1 GB** of free disk space (models + PyTorch)
+- Internet connection on first run (model download)
 
----
+### Option A — Windows, one-click launcher ⭐
 
-### Option A — One-click launch (Windows) ⭐ Recommended
-
-> This uses the `start.bat` file you added. It activates the virtual environment and starts the server automatically.
-
-**Step 1** — Set up a virtual environment and install dependencies (only needed once):
+**Step 1 — one-time setup** (run from a terminal):
 
 ```bat
+git clone https://github.com/Bharat730/SentimentScope.git
 cd SentimentScope\SentimentScope
 python -m venv venv
-venv\Scripts\activate
-pip install -r backend\requirements.txt
+venv\Scripts\python.exe -m pip install -r backend\requirements.txt
 ```
 
-**Step 2** — Double-click `start.bat` (or run it from the terminal):
+**Step 2 — start the server:** double-click `start.bat`, or run it from the terminal:
 
 ```bat
-SentimentScope\SentimentScope\start.bat
+start.bat
 ```
 
-The script will:
-1. Activate the `venv` automatically
-2. Detect your local IP address
-3. Start the server on port `8000`
-4. Print both local and LAN access URLs
+The script activates the virtual environment, detects your local IP, starts the server on port `8000` and prints both URLs.
 
-**Step 3** — Open in your browser:
+**Step 3 — open it:**
 
 | Device | URL |
 |---|---|
 | This computer | `http://localhost:8000` |
-| Other devices on Wi-Fi | `http://<your-local-IP>:8000` |
-
----
+| Other devices on the same Wi-Fi | `http://<your-pc-ip>:8000` (shown by `start.bat`, or run `ipconfig`) |
 
 ### Option B — Manual launch (any OS)
 
 ```bash
-# 1. Create & activate virtual environment
+cd SentimentScope/SentimentScope
 python -m venv venv
 
 # Windows:
@@ -118,21 +113,18 @@ venv\Scripts\activate
 # macOS / Linux:
 source venv/bin/activate
 
-# 2. Install dependencies
-pip install -r SentimentScope/backend/requirements.txt
-
-# 3. Start the server
-cd SentimentScope/backend
+pip install -r backend/requirements.txt
+cd backend
 uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
-Then open `http://localhost:8000`.
+Use `--host 127.0.0.1` instead of `0.0.0.0` if you want the app reachable from this computer only. Stop the server with `Ctrl+C`.
 
 ---
 
 ## 🔌 REST API Reference
 
-The backend is a fully documented FastAPI app. All endpoints are also browsable at `http://localhost:8000/docs`.
+All endpoints are also browsable at `http://localhost:8000/docs`.
 
 ### `GET /health`
 Liveness check.
@@ -141,19 +133,15 @@ Liveness check.
 { "status": "ok", "service": "SentimentScope" }
 ```
 
----
-
 ### `POST /analyse`
-Analyse a **single** piece of text.
+Analyse a **single** text (overall result only).
 
-**Request body:**
 ```json
-{
-  "text": "I absolutely love this product! It changed my life."
-}
+{ "text": "I absolutely love this product! It changed my life." }
 ```
 
-**Response:**
+Response:
+
 ```json
 {
   "text": "I absolutely love this product! It changed my life.",
@@ -166,39 +154,40 @@ Analyse a **single** piece of text.
   "emotion": "Joy",
   "emotion_scores": [
     { "label": "Joy",      "score": 89.12 },
-    { "label": "Surprise", "score": 5.31 },
-    ...
+    { "label": "Surprise", "score": 5.31 }
   ]
 }
 ```
 
-**Constraints:** `text` must be 1–2 000 characters.
+*(Scores are percentages, sorted highest first; the emotion list contains all 7 labels.)*
+**Constraints:** `text` must be 1–2,000 characters.
 
----
+### `POST /analyse/aspects`
+Same request as `/analyse`. Returns the overall result **plus** an `aspects` list with one entry per detected sentence:
+
+```json
+{
+  "text": "The camera is great. The battery life is awful.",
+  "sentiment": "...", "sentiment_scores": [ ... ],
+  "emotion": "...",   "emotion_scores": [ ... ],
+  "aspects": [
+    { "text": "The camera is great.",       "sentiment": "Positive", "emotion": "Joy",   "sentiment_scores": [ ... ], "emotion_scores": [ ... ] },
+    { "text": "The battery life is awful.", "sentiment": "Negative", "emotion": "Anger", "sentiment_scores": [ ... ], "emotion_scores": [ ... ] }
+  ]
+}
+```
+
+The web UI calls this endpoint for the Single Post tab and shows the breakdown when at least two sentences are found.
 
 ### `POST /analyse/batch`
 Analyse **up to 50 texts** in one request.
 
-**Request body:**
 ```json
-{
-  "texts": [
-    "I'm so happy today!",
-    "This is the worst day ever.",
-    "Feeling kind of meh today…"
-  ]
-}
+{ "texts": ["I'm so happy today!", "This is the worst day ever."] }
 ```
 
-**Response:**
-```json
-{
-  "count": 3,
-  "results": [ ...same shape as single /analyse response... ]
-}
-```
-
-**Constraints:** 1–50 items in the list.
+Response: `{ "count": 2, "results": [ ...same shape as /analyse... ] }`
+**Constraints:** 1–50 items. Blank items are skipped.
 
 ---
 
@@ -206,15 +195,14 @@ Analyse **up to 50 texts** in one request.
 
 | Layer | Technology |
 |---|---|
-| **Backend framework** | [FastAPI](https://fastapi.tiangolo.com/) 0.111.0 |
-| **ASGI server** | [Uvicorn](https://www.uvicorn.org/) 0.30.1 |
-| **ML framework** | [PyTorch](https://pytorch.org/) 2.6.0 |
-| **NLP library** | [HuggingFace Transformers](https://huggingface.co/docs/transformers) 4.45.2 |
-| **Tokenizer** | HuggingFace Tokenizers 0.20.3 |
-| **Data validation** | Pydantic (via FastAPI) |
-| **Frontend** | Vanilla HTML5 + CSS3 + JavaScript — zero build step, zero dependencies |
-| **Fonts** | Google Fonts: [Inter](https://fonts.google.com/specimen/Inter) + [JetBrains Mono](https://fonts.google.com/specimen/JetBrains+Mono) |
-| **Persistence** | Browser `localStorage` (client-side history only) |
+| Backend framework | [FastAPI](https://fastapi.tiangolo.com/) 0.111.0 |
+| ASGI server | [Uvicorn](https://www.uvicorn.org/) 0.30.1 |
+| ML framework | [PyTorch](https://pytorch.org/) 2.6.0 |
+| NLP library | [HuggingFace Transformers](https://huggingface.co/docs/transformers) 4.45.2 (+ Tokenizers 0.20.3) |
+| Data validation | Pydantic (via FastAPI) |
+| Frontend | Vanilla HTML5 + CSS3 + JavaScript — no build step |
+| Fonts | Google Fonts: Inter + JetBrains Mono |
+| Persistence | Browser `localStorage` (history only) |
 
 ---
 
@@ -222,42 +210,52 @@ Analyse **up to 50 texts** in one request.
 
 ```
 Browser (app.js)
-    │
-    │  POST /analyse  {text: "..."}
+    │  POST /analyse/aspects  {text}
     ▼
 FastAPI (main.py)
-    │
-    │  analyse_text(text)
     ▼
 model.py
     ├─► Sentiment pipeline  (cardiffnlp/twitter-roberta-base-sentiment-latest)
-    │       └─► Returns: [{label: "Positive", score: 0.97}, ...]
-    │
-    └─► Emotion pipeline    (j-hartmann/emotion-english-distilroberta-base)
-            └─► Returns: [{label: "joy", score: 0.89}, ...]
-    │
-    │  Normalise labels, multiply × 100, sort descending
+    ├─► Emotion pipeline    (j-hartmann/emotion-english-distilroberta-base)
+    │      → normalise labels, ×100, sort descending
+    └─► Sentence splitter → the same two models run on each sentence
     ▼
-JSON response → browser renders animated score bars
+JSON → browser renders score bars, chips and the sentence breakdown
 ```
 
-- Both models use **`top_k=None`** — all label scores are returned (not just the top one), so you always get the full probability distribution.
-- Models are **lazily loaded** on first request and then **cached in memory** as singletons for the lifetime of the server process.
-- Text is **truncated** to 512 tokens (transformer limit) if longer than that.
+- Both models use **`top_k=None`**, so every label's score is returned, not just the winner.
+- Models are **lazily loaded** on the first request and kept in memory for the life of the server process.
+- Text is **truncated** to 512 tokens (the model limit).
+- Sentence splitting is **rule-based** (a regular expression that also protects common abbreviations such as *Dr.* and *Mr.*). Fragments shorter than 8 characters are skipped.
+- Each analysis writes a log entry (console + `backend/inference.log`) containing the first 80 characters of the input and the scores.
 
 ---
 
 ## 🌐 Network / LAN Access
 
-`start.bat` starts the server with `--host 0.0.0.0`, which means the app is reachable from **any device on the same Wi-Fi/LAN** (phones, tablets, other computers) — not just `localhost`.
-
-The `app.js` frontend automatically detects whether it's being accessed locally or over the network and points the API calls at the correct host:
+`start.bat` runs the server with `--host 0.0.0.0`, so the app is reachable from any device on the same Wi-Fi/LAN. The frontend works out the API address automatically:
 
 ```js
 const API_BASE = location.protocol === "file:"
   ? "http://localhost:8000"
   : `${location.protocol}//${location.hostname}:8000`;
 ```
+
+This assumes the server is running on port `8000`.
+
+---
+
+## 🧰 Troubleshooting
+
+| Problem | Fix |
+|---|---|
+| Phone/other device can't connect | Make sure both devices are on the **same Wi-Fi** (not a guest network). Some campus/hostel networks block device-to-device traffic — try a phone hotspot. |
+| Windows Firewall blocks it | When prompted, allow Python on **Private** networks. Or run once in an *Administrator* PowerShell: `New-NetFirewallRule -DisplayName "SentimentScope 8000" -Direction Inbound -Protocol TCP -LocalPort 8000 -Action Allow -Profile Private` |
+| `Address already in use` | An old server is still running. Close it, or start on another port: `--port 8001`. (The frontend expects port 8000 when opened from another device.) |
+| `start.bat` says it cannot find `venv` | Create it first (see *Getting Started*). The venv must be in `SentimentScope/SentimentScope/venv`. |
+| First analysis is slow | Normal — the models load on the first request after each start. |
+| Console shows "Some weights … were not used" | Harmless HuggingFace notice for the sentiment model. |
+| `GET /favicon.ico 404` in the console | Harmless — the app has no favicon yet. |
 
 ---
 
@@ -269,42 +267,50 @@ const API_BASE = location.protocol === "file:"
 
 ---
 
-## 🗂️ desktop.ini — Windows Folder Customization
+## 🔒 Notes & Limitations
 
-The repository includes a `desktop.ini` file at the root level. This is a **Windows system file** that customizes how the folder appears in Windows Explorer.
-
-```ini
-[.ShellClassInfo]
-LocalizedResourceName=@SentimentScope,0
-```
-
-| Key | Description |
-|---|---|
-| `[.ShellClassInfo]` | Section header read by the Windows Shell |
-| `LocalizedResourceName` | Sets the folder's **display name** in Windows Explorer to `SentimentScope` |
-
-> **Note:** `desktop.ini` is normally a hidden system file on Windows. If you don't see it in Explorer, enable **"Show hidden items"** in View settings. It has no effect on macOS or Linux — safe to ignore on those platforms.
+- **No authentication** — anyone on your network can use the app while it runs with `--host 0.0.0.0`. Use it on trusted networks only.
+- **No database** — history lives in the browser only, not on the server.
+- **Privacy** — `backend/inference.log` stores the first 80 characters of every analysed text and grows over time. It is git-ignored; delete it whenever you like.
+- **English only** — both models are trained on English text.
+- **Accuracy** — the emotion model reaches about 66% on its own test split across 7 classes; sarcasm, slang and mixed emotions are hard for both models.
+- **Max 512 tokens** per text; the API accepts at most 2,000 characters.
+- **CPU inference** by default; for a CUDA GPU set `device=0` in the `pipeline()` calls in `model.py`.
+- **Single process** — the API and static files are served by one Uvicorn process.
 
 ---
 
-## 🔒 Notes & Limitations
+## 🤝 Contributing
 
-- **No authentication** — anyone on your LAN can access the app when running with `--host 0.0.0.0`
-- **No database** — history is stored in the browser only (`localStorage`), not on the server
-- **English only** — both models are trained primarily on English text
-- **Max 512 tokens** — text longer than 512 tokens is truncated before inference
-- **CPU inference** — runs on CPU by default; GPU acceleration is available if CUDA is installed (set `device=0` in the `pipeline()` calls in `model.py`)
-- **Single-process** — both API and static file serving share one Uvicorn process
+The `main` branch is protected: changes go in through **pull requests**.
+
+```bash
+git checkout main
+git pull
+git checkout -b my-change
+# ...edit files...
+git add .
+git commit -m "Describe the change"
+git push -u origin my-change
+```
+
+Then open a pull request on GitHub.
+
+---
+
+## 👥 Authors
+
+- **Bharat Lakhanpal** — [@Bharat730](https://github.com/Bharat730)
+- **Piyush Grover** — [@PiyushGrover435](https://github.com/PiyushGrover435)
 
 ---
 
 ## 📝 License
 
-This project is open source. See the repository for license details.
+No license has been chosen yet. Until one is added, all rights remain with the authors.
 
 ---
 
 <p align="center">
   SentimentScope · Built with ♥ using RoBERTa &amp; DistilRoBERTa
 </p>
-
