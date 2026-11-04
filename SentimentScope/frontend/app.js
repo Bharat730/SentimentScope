@@ -108,11 +108,18 @@ async function analyseSingle() {
   resultEl.innerHTML = `<div class="skeleton skeleton-block"></div>`;
 
   try {
-    const data = await callApi("/analyse", { text });
+    // Always call /analyse/aspects — it returns overall + per-sentence breakdown
+    const data = await callApi("/analyse/aspects", { text });
     resultEl.innerHTML = buildResultCard(data);
+
+    // If more than one sentence detected, render the aspect breakdown
+    if (data.aspects && data.aspects.length > 1) {
+      resultEl.innerHTML += buildAspectsSection(data.aspects);
+    }
+
     animateBars(resultEl);
 
-    // add to history and persist
+    // add to history and persist (store overall only)
     history.unshift({ ...data, ts: new Date().toISOString() });
     if (history.length > 50) history.pop();
     saveHistory(history);
@@ -179,6 +186,71 @@ function buildResultCard(data) {
         </div>
       </div>
     </div>`;
+}
+
+// ── Sentence-level aspect breakdown ──────────────────────────────────────────
+function buildAspectsSection(aspects) {
+  const rows = aspects.map((a, i) => {
+    const sentClass = `sent-${a.sentiment.toLowerCase()}`;
+    const emotClass = `emot-${a.emotion.toLowerCase()}`;
+    const id = `aspect-${i}`;
+    const sentBars = a.sentiment_scores.map(s => buildBar(s.label, s.score, "sent")).join("");
+    const emtBars  = a.emotion_scores.map(e => buildBar(e.label, e.score, "emot")).join("");
+
+    return `
+      <div class="aspect-item glass">
+        <button class="aspect-header" onclick="toggleAspect('${id}')" aria-expanded="false">
+          <span class="aspect-num">${i + 1}</span>
+          <span class="aspect-sentence">${escHtml(a.text)}</span>
+          <div class="aspect-chips">
+            <span class="chip ${sentClass}">${SENTIMENT_EMOJI[a.sentiment] || ""} ${a.sentiment}</span>
+            <span class="chip ${emotClass}">${EMOTION_EMOJI[a.emotion] || ""} ${a.emotion}</span>
+          </div>
+          <span class="aspect-chevron">▾</span>
+        </button>
+        <div class="aspect-body hidden" id="${id}">
+          <div class="result-grid" style="padding:1rem 1.25rem 1.25rem">
+            <div>
+              <p class="result-section-title">Sentiment</p>
+              <div class="bars-container">${sentBars}</div>
+            </div>
+            <div>
+              <p class="result-section-title">Emotion</p>
+              <div class="bars-container">${emtBars}</div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }).join("");
+
+  return `
+    <div class="aspects-section">
+      <div class="aspects-header">
+        <span class="aspects-title">📋 Sentence-by-Sentence Breakdown</span>
+        <span class="aspects-count">${aspects.length} sentences</span>
+      </div>
+      ${rows}
+    </div>`;
+}
+
+function toggleAspect(id) {
+  const body    = document.getElementById(id);
+  const btn     = body.previousElementSibling;
+  const chevron = btn.querySelector(".aspect-chevron");
+  const isOpen  = !body.classList.contains("hidden");
+
+  body.classList.toggle("hidden", isOpen);
+  btn.setAttribute("aria-expanded", String(!isOpen));
+  chevron.style.transform = isOpen ? "" : "rotate(180deg)";
+
+  if (!isOpen) {
+    // animate bars inside this panel
+    requestAnimationFrame(() => {
+      body.querySelectorAll(".score-bar-fill").forEach(bar => {
+        bar.style.width = bar.dataset.width + "%";
+      });
+    });
+  }
 }
 
 // ── Build single score bar ────────────────────────────────────────────────────

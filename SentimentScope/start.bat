@@ -1,5 +1,5 @@
 @echo off
-title SentimentScope
+title SentimentScope — Server
 echo.
 echo  =========================================
 echo    SentimentScope - Starting up...
@@ -30,7 +30,6 @@ echo.
 echo   Press CTRL+C to stop the server.
 echo.
 
-:: Start the server (expose to all network devices)
 cd "%~dp0backend"
 uvicorn main:app --host 0.0.0.0 --port 8000
 

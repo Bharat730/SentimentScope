@@ -493,3 +493,108 @@ body {
   color: var(--text-muted);
   font-size: .82rem;
 }
+
+
+/* ── Sentence-by-sentence aspect breakdown ─────────────────────────────────── */
+.aspects-section {
+  margin-top: 1.4rem;
+  animation: fadeIn .4s ease;
+}
+
+.aspects-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: .9rem;
+}
+
+.aspects-title {
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: .02em;
+}
+
+.aspects-count {
+  font-size: .75rem;
+  font-family: var(--mono);
+  color: var(--text-muted);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  padding: .2rem .6rem;
+  border-radius: 999px;
+}
+
+.aspect-item {
+  border-radius: var(--radius-md);
+  margin-bottom: .6rem;
+  overflow: hidden;
+  transition: border-color var(--transition);
+}
+
+.aspect-item:hover {
+  border-color: rgba(139,92,246,0.3);
+}
+
+.aspect-header {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+  padding: .9rem 1.1rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text-primary);
+  font-family: var(--font);
+  transition: background var(--transition);
+}
+
+.aspect-header:hover { background: var(--surface-hover); }
+
+.aspect-num {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(139,92,246,0.2);
+  border: 1px solid rgba(139,92,246,0.35);
+  color: var(--accent-purple);
+  font-size: .72rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.aspect-sentence {
+  flex: 1;
+  font-size: .88rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.aspect-chips {
+  display: flex;
+  flex-shrink: 0;
+  gap: .4rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: flex-start;
+}
+
+.aspect-chevron {
+  flex-shrink: 0;
+  font-size: .85rem;
+  color: var(--text-muted);
+  transition: transform var(--transition);
+  margin-top: 2px;
+  margin-left: .2rem;
+}
+
+.aspect-body {
+  border-top: 1px solid var(--border);
+  animation: fadeIn .2s ease;
+}
